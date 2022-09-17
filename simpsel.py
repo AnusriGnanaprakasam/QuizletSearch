@@ -19,12 +19,11 @@ def quizletdecks():
     EC.presence_of_element_located((By.CLASS_NAME,"AssemblyTabs"))
      ) #element is being changed dynamically everytime page is reloaded
     
-    StudySets = Tabs.WebDriverWait(driver, 15).until(
-     EC.presence_of_element_located((By.XPATH, '//*[contains(text(),"Study sets")]'))
-     ) #e
+    StudySets = Tabs.find_element(By.XPATH, '//*[contains(text(),"Study sets")]')
+      #e
 
    #j EC.presence_of_element_located((By.XPATH,value = '//*[contains(text(),"Study sets")]')))
-               
+    driver.execute_script("window.scrollTo(0,document.body.scrollHeight);")
     StudySets.click()    
 
     element = WebDriverWait(driver, 15).until(

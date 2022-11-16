@@ -29,16 +29,23 @@ def quizletdecks(query):
         previewsel.append(Decks[deck].text)
     print(previewsel)
 
-    
+    stats_per_deck = [] 
     #filter by num of terms and see if there are stars:
     for element_text in previewsel:
-        termraw= re.search(r'(\d{2} terms)',element_text) #need to figure out how to make it so that the thing in braces and be whatever num
-        print(termraw)
-       # termnum = termraw[0:2] #how to get search to only return the string it find(it sould be in geeks for geeks article)
-        stars = re.search(r"(\n\d{1} ()",element_text)
-        print(stars)
-       # print(termnum+" "+stars)
-        
+        termraw= list(re.findall(r'(\d{2} terms)',element_text)) #need to figure out how to make it so that the thing in braces and be whatever num
+        starsraw= re.findall(r"(terms\n\d{1})",element_text)
+        if len(termraw) > 0:
+            termnum = termraw[0]   
+            termnum = str(termnum[0:2])
+            stats = termnum
+            stats_per_deck.append(stats)
+        if len(starsraw) > 0 and len(termraw)> 0: 
+            termnum = termraw[0]  
+            termnum = str(termnum[0:2])
+            starnum = starsraw[0]
+            starnum = str(starnum[6:-1])
+            stats = termnum +" "+ starnum
+            stats_per_deck.append(stats)
 quizletdecks('AP-Calc')# query should be given with - where the spaces should be
                                                                                               
 '''first filter for highest amount of terms

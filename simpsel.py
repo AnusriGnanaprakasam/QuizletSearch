@@ -7,10 +7,10 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import re
-
+import time
 service = Service(r"/home/nunu/Tools/geckodriver" )
 driver = webdriver.Firefox(service=service)
-def quizletdecks(query):
+def autodeck(query):
 
     driver.get(f"https://quizlet.com/search?query={query}&type=sets")
 
@@ -29,32 +29,34 @@ def quizletdecks(query):
         previewsel.append(Decks[deck].text)
     print(previewsel)
 
-    stats_per_deck = [] 
+    terms_per_deck = [] 
+    stars_per_deck = []
     #filter by num of terms and see if there are stars:
     for element_text in previewsel:
         termraw= list(re.findall(r'(\d{2} terms)',element_text)) #need to figure out how to make it so that the thing in braces and be whatever num
         starsraw= re.findall(r"(terms\n\d{1})",element_text)
         if len(termraw) > 0:
             termnum = termraw[0]   
-            termnum = str(termnum[0:2])
-            stats = termnum
-            stats_per_deck.append(stats)
+            termnum = int(termnum[0:2])
+            terms_per_deck.append(termnum)
+            stars_per_deck.append(0)
         if len(starsraw) > 0 and len(termraw)> 0: 
             termnum = termraw[0]  
-            termnum = str(termnum[0:2])
+            termnum = int(termnum[0:2])
             starnum = starsraw[0]
-            starnum = str(starnum[6:-1])
-            stats = termnum +" "+ starnum
-            stats_per_deck.append(stats)
-quizletdecks('AP-Calc')# query should be given with - where the spaces should be
+            starnum = int(starnum[-1])
+            stars_per_deck.append(starnum)
+            terms_per_deck.append(termnum)
+    print(terms_per_deck,stars_per_deck)
+    
+    maxstars = max(stars_per_deck)
+    if maxstars > 0:
+        index_max_stars = stars_per_deck.index(maxstars)
+        deck = driver.find_element(By.XPATH,"/html/body/div[4]/main/div/section[2]/div/div/div[2]/div[3]/div/div[1]/div/div/div/div[2]/button/span") 
+        time.sleep(20)
+        deck.click()        
+    else:
+        maxterms = max(terms_per_deck)
+        index_max_terms = terms_per_deck.index(maxterms) 
+autodeck('AP-Calc')# query should be given with - where the spaces should be
                                                                                               
-'''first filter for highest amount of terms
-[nunu@arch WebScraping]$ echo then filter for categorize 5 starts and lower
-then filter for categorize 5 starts and lower
-[nunu@arch WebScraping]$ echo then categorize for num of views
-then categorize for num of views
-[nunu@arch WebScraping]$ echo then check for name
-then check for name
-[nunu@arch WebScraping]$ echo and do the find element by txt thing
-and do the find element by txt thing
-'''

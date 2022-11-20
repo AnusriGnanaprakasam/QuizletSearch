@@ -8,6 +8,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import re
 import time
+
 service = Service(r"/home/nunu/Tools/geckodriver" )
 driver = webdriver.Firefox(service=service)
 def autodeck(query):
@@ -52,9 +53,11 @@ def autodeck(query):
     maxstars = max(stars_per_deck)
     if maxstars > 0:
         index_max_stars = stars_per_deck.index(maxstars)
-        deck = driver.find_element(By.XPATH,"/html/body/div[4]/main/div/section[2]/div/div/div[2]/div[3]/div/div[1]/div/div/div/div[2]/button/span") 
-        time.sleep(20)
-        deck.click()        
+        #use 4th bracket and add one to get the deck num
+        specdeck = driver.find_element(By.XPATH,f"/html/body/div[4]/main/div/section[2]/div/div/div[2]/div[1]/div/div[{index_max_stars }]/div/div/div") 
+        #multiple buttons with name preview so i had to find element within element
+        deck = specdeck.find_element(By.XPATH,"/html/body/div[4]/main/div/section[2]/div/div/div[2]/div[1]/div/div[2]/div/div/div/div[2]/button/span")
+        deck.click()
     else:
         maxterms = max(terms_per_deck)
         index_max_terms = terms_per_deck.index(maxterms) 

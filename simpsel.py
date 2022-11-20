@@ -34,6 +34,7 @@ def autodeck(query):
     stars_per_deck = []
     #filter by num of terms and see if there are stars:
     for element_text in previewsel:
+        #please fix this so that one term things can be seen 
         termraw= list(re.findall(r'(\d{2} terms)',element_text)) #need to figure out how to make it so that the thing in braces and be whatever num
         starsraw= re.findall(r"(terms\n\d{1})",element_text)
         if len(termraw) > 0:
@@ -52,13 +53,19 @@ def autodeck(query):
     
     maxstars = max(stars_per_deck)
     if maxstars > 0:
-        #index_max_stars = stars_per_deck.index(maxstars)
-        index_max_stars = 1       
-        #use 4th bracket and add one to get the deck num
+        index_max_stars = stars_per_deck.index(maxstars)
+        #use the index of max stars to get term num
+        termnum = terms_per_deck[index_max_stars]
         specdeck = driver.find_element(By.XPATH,f"/html/body/div[4]/main/div/section[2]/div/div/div[2]/div[1]/div/div[{index_max_stars }]/div/div/div") 
         #multiple buttons with name preview so i had to find element within element
         deck = specdeck.find_element(By.XPATH,f"/html/body/div[4]/main/div/section[2]/div/div/div[2]/div[1]/div/div[{index_max_stars}]/div/div/div/div[2]/button/span")
         deck.click()
+        #after clicking on preview
+        for i in range(1,termnum+1):
+            time.sleep(0.1)
+            cards = driver.find_element(By.XPATH,f"/html/body/div[4]/main/div/section[2]/div/div/div[2]/div[2]/div[1]/div/div[2]/div/div/div[3]/div[{i}]")
+            print(cards.text) 
+
     else:
         maxterms = max(terms_per_deck)
         index_max_terms = terms_per_deck.index(maxterms) 

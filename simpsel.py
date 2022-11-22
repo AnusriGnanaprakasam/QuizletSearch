@@ -6,11 +6,15 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.actions.wheel_input import ScrollOrigin
+from selenium.webdriver import ActionChains
 import re
 import time
-
+#use ctrl c in browser and shift insert in arch
 service = Service(r"/home/nunu/Tools/geckodriver" )
 driver = webdriver.Firefox(service=service)
+
+
 def autodeck(query):
 
     driver.get(f"https://quizlet.com/search?query={query}&type=sets")
@@ -35,7 +39,7 @@ def autodeck(query):
     #filter by num of terms and see if there are stars:
     for element_text in previewsel:
         #please fix this so that one term things can be seen 
-        termraw= list(re.findall(r'(\d{2} terms)',element_text)) #need to figure out how to make it so that the thing in braces and be whatever num
+        termraw= list(re.findall(r'(\d+ terms)',element_text)) #need to figure out how to make it so that the thing in braces and be whatever num
         starsraw= re.findall(r"(terms\n\d{1})",element_text)
         if len(termraw) > 0:
             termnum = termraw[0]   
@@ -61,8 +65,11 @@ def autodeck(query):
         deck = specdeck.find_element(By.XPATH,f"/html/body/div[4]/main/div/section[2]/div/div/div[2]/div[1]/div/div[{index_max_stars}]/div/div/div/div[2]/button/span")
         deck.click()
         #after clicking on preview
-        for i in range(1,termnum+1):
-            time.sleep(0.1)
+        itemspreview = driver.find_element(By.XPATH,"/html/body/div[4]/main/div/section[2]/div/div/div[2]/div[2]/div[1]/div/div[2]/div/div/div[3]")
+        driver.execute_script("window.scrollTo(0,.body.scrollHeight)",itemspreview)
+        
+        for i in range(1,termnum+1): #this is a scroll prob
+            time.sleep(0.1) 
             cards = driver.find_element(By.XPATH,f"/html/body/div[4]/main/div/section[2]/div/div/div[2]/div[2]/div[1]/div/div[2]/div/div/div[3]/div[{i}]")
             print(cards.text) 
 

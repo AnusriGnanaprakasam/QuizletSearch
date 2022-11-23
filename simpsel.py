@@ -10,36 +10,24 @@ from selenium.webdriver.common.actions.wheel_input import ScrollOrigin
 from selenium.webdriver import ActionChains
 import re
 import time
-#use ctrl c in browser and shift insert in arch
+
+#open firefox browser
 service = Service(r"/home/nunu/Tools/geckodriver" )
 driver = webdriver.Firefox(service=service)
 
-
-def autodeck(query):
-
-    driver.get(f"https://quizlet.com/search?query={query}&type=sets")
-
-    #format: change url for whatever topic you want to search for
-    # work but i don't need it bodyclass=  driver.find_element(By.XPATH,value="/html/body/div[4]/main/div")
-    #site = driver.find_element(By.CLASS_NAME,value="site")
-    #main = driver.find_element(By.ID,value="page") 
-    #searchResultsPage = driver.find_element(By.CLASS_NAME,value="SearchResultsPage") 
-    #i did try to go layer by layer to make sure it could find elements
-
+def sortdecks():
     setview = driver.find_element(By.CLASS_NAME,value="SetsView-resultList") 
     Decks = setview.find_elements(By.CLASS_NAME,value="SearchResultsPage-result")
-    print(type(Decks))
-    previewsel = []
+    #Decks are on the left. There are multiple that many people make on one topic
+    diffdeck = []
     for deck in range(len(Decks)):
-        previewsel.append(Decks[deck].text)
-    print(previewsel)
+        diffdeck.append(Decks[deck].text)
 
     terms_per_deck = [] 
     stars_per_deck = []
     #filter by num of terms and see if there are stars:
-    for element_text in previewsel:
-        #please fix this so that one term things can be seen 
-        termraw= list(re.findall(r'(\d+ terms)',element_text)) #need to figure out how to make it so that the thing in braces and be whatever num
+    for element_text in diffdeck:
+        termraw= list(re.findall(r'(\d+ terms)',element_text)) 
         starsraw= re.findall(r"(terms\n\d{1})",element_text)
         if len(termraw) > 0:
             termnum = termraw[0]   
@@ -53,23 +41,32 @@ def autodeck(query):
             starnum = int(starnum[-1])
             stars_per_deck.append(starnum)
             terms_per_deck.append(termnum)
-    print(terms_per_deck,stars_per_deck)
-    
+    return terms_per_deck,stars_per_deck
+
+def autodeck(query):
+
+    driver.get(f"https://quizlet.com/search?query={query}&type=sets")
+    terms_per_deck,stars_per_deck = sortdecks()
     maxstars = max(stars_per_deck)
     if maxstars > 0:
         index_max_stars = stars_per_deck.index(maxstars)
         #use the index of max stars to get term num
         termnum = terms_per_deck[index_max_stars]
+        #find the specific deck that is to be used
         specdeck = driver.find_element(By.XPATH,f"/html/body/div[4]/main/div/section[2]/div/div/div[2]/div[1]/div/div[{index_max_stars }]/div/div/div") 
-        #multiple buttons with name preview so i had to find element within element
+        #multiple buttons with name preview so I had to find element within element
         deck = specdeck.find_element(By.XPATH,f"/html/body/div[4]/main/div/section[2]/div/div/div[2]/div[1]/div/div[{index_max_stars}]/div/div/div/div[2]/button/span")
+        #find preview button
         deck.click()
         #after clicking on preview
+        flash = []
         for i in range(1,termnum+1): #this is a scroll prob
             time.sleep(0.1) 
             cards = driver.find_element(By.XPATH,f"/html/body/div[4]/main/div/section[2]/div/div/div[2]/div[2]/div[1]/div/div[2]/div/div/div[3]/div[{i}]")
             driver.execute_script("return arguments[0].scrollIntoView(true);", cards)
-            print(cards.text) 
+            flash.append(cards.text)
+        print(flash)
+
     else:
         maxterms = max(terms_per_deck)
         index_max_terms = terms_per_deck.index(maxterms) 

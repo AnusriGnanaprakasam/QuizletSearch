@@ -65,14 +65,11 @@ def autodeck(query):
         deck = specdeck.find_element(By.XPATH,f"/html/body/div[4]/main/div/section[2]/div/div/div[2]/div[1]/div/div[{index_max_stars}]/div/div/div/div[2]/button/span")
         deck.click()
         #after clicking on preview
-        itemspreview = driver.find_element(By.XPATH,"/html/body/div[4]/main/div/section[2]/div/div/div[2]/div[2]/div[1]/div/div[2]/div/div/div[3]")
-        driver.execute_script("window.scrollTo(0,.body.scrollHeight)",itemspreview)
-        
         for i in range(1,termnum+1): #this is a scroll prob
             time.sleep(0.1) 
             cards = driver.find_element(By.XPATH,f"/html/body/div[4]/main/div/section[2]/div/div/div[2]/div[2]/div[1]/div/div[2]/div/div/div[3]/div[{i}]")
+            driver.execute_script("return arguments[0].scrollIntoView(true);", cards)
             print(cards.text) 
-
     else:
         maxterms = max(terms_per_deck)
         index_max_terms = terms_per_deck.index(maxterms) 

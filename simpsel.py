@@ -16,6 +16,7 @@ service = Service(r"/home/nunu/Tools/geckodriver" )
 driver = webdriver.Firefox(service=service)
 
 def sortdecks():
+    '''sorts deck based on number of terms and stars. Stores indexes of cards where term or star num = n'''
     setview = driver.find_element(By.CLASS_NAME,value="SetsView-resultList") 
     Decks = setview.find_elements(By.CLASS_NAME,value="SearchResultsPage-result")
     #Decks are on the left. There are multiple that many people make on one topic
@@ -44,31 +45,32 @@ def sortdecks():
     return terms_per_deck,stars_per_deck
 
 def autodeck(query):
+    '''chooses the best deck for a topic based on number of stars'''
 
     driver.get(f"https://quizlet.com/search?query={query}&type=sets")
     terms_per_deck,stars_per_deck = sortdecks()
     maxstars = max(stars_per_deck)
-    if maxstars > 0:
-        index_max_stars = stars_per_deck.index(maxstars)
-        #use the index of max stars to get term num
-        termnum = terms_per_deck[index_max_stars]
-        #find the specific deck that is to be used
-        specdeck = driver.find_element(By.XPATH,f"/html/body/div[4]/main/div/section[2]/div/div/div[2]/div[1]/div/div[{index_max_stars }]/div/div/div") 
-        #multiple buttons with name preview so I had to find element within element
-        deck = specdeck.find_element(By.XPATH,f"/html/body/div[4]/main/div/section[2]/div/div/div[2]/div[1]/div/div[{index_max_stars}]/div/div/div/div[2]/button/span")
-        #find preview button
-        deck.click()
-        #after clicking on preview
-        flash = []
-        for i in range(1,termnum+1): #this is a scroll prob
-            time.sleep(0.1) 
-            cards = driver.find_element(By.XPATH,f"/html/body/div[4]/main/div/section[2]/div/div/div[2]/div[2]/div[1]/div/div[2]/div/div/div[3]/div[{i}]")
-            driver.execute_script("return arguments[0].scrollIntoView(true);", cards)
-            flash.append(cards.text)
-        print(flash)
+    index_max_stars = stars_per_deck.index(maxstars)
+    #use the index of max stars to get term num
+    termnum = terms_per_deck[index_max_stars]
+    #find the specific deck that is to be used
+    specdeck = driver.find_element(By.XPATH,f"/html/body/div[4]/main/div/section[2]/div/div/div[2]/div[1]/div/div[{index_max_stars }]/div/div/div") 
+    #multiple buttons with name preview so I had to find element within element
+    deck = specdeck.find_element(By.XPATH,f"/html/body/div[4]/main/div/section[2]/div/div/div[2]/div[1]/div/div[{index_max_stars}]/div/div/div/div[2]/button/span")
+    #find preview button
+    deck.click()
+    #after clicking on preview
+    #making file to host cards
+    cardfile = open('cards.txt','w')
+    cardfile.close()
+    for i in range(1,termnum+1): #this is a scroll problem
+        time.sleep(0.1) 
+        cards = driver.find_element(By.XPATH,f"/html/body/div[4]/main/div/section[2]/div/div/div[2]/div[2]/div[1]/div/div[2]/div/div/div[3]/div[{i}]")
+        driver.execute_script("return arguments[0].scrollIntoView(true);", cards)
+        cardfile = open('cards.txt','a+')
+        cardfile.write(cards.text + '\n') 
+    cardfile.close()  
 
-    else:
-        maxterms = max(terms_per_deck)
-        index_max_terms = terms_per_deck.index(maxterms) 
+#11/25: i need to use csv python lib and turn my csv file to an apkg file
 autodeck('AP-Calc')# query should be given with - where the spaces should be
                                                                                               

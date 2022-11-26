@@ -1,5 +1,3 @@
-#Selenium tut
-
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.keys import Keys
@@ -8,6 +6,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.actions.wheel_input import ScrollOrigin
 from selenium.webdriver import ActionChains
+import csv
 import re
 import time
 
@@ -61,16 +60,29 @@ def autodeck(query):
     deck.click()
     #after clicking on preview
     #making file to host cards
-    cardfile = open('cards.txt','w')
-    cardfile.close()
+    cardlist =[]
     for i in range(1,termnum+1): #this is a scroll problem
-        time.sleep(0.1) 
+        time.sleep(0.4) #i really need to put a webdriver wait here
         cards = driver.find_element(By.XPATH,f"/html/body/div[4]/main/div/section[2]/div/div/div[2]/div[2]/div[1]/div/div[2]/div/div/div[3]/div[{i}]")
         driver.execute_script("return arguments[0].scrollIntoView(true);", cards)
-        cardfile = open('cards.txt','a+')
-        cardfile.write(cards.text + '\n') 
-    cardfile.close()  
+        cardlist.append(cards.text)
+    #make frontandback distinctions to turn into csv file
+    csvlist = []
+    for card in cardlist:
+        spliter = card.index("\n")
+        frontback = {"front":0,"back":0}
+        frontback["front"] = card[0:spliter]
+        frontback["back"] = card[spliter+1:]
+        csvlist.append(frontback) 
+    print(csvlist)
 
+    fields = ["front","back"]
+    
+    with open("yourdeck.csv",'w') as csvfile:
+
+        writer = csv.DictWriter(csvfile,fieldnames = fields)
+        writer.writeheader()
+        writer.writerows(csvlist)
 #11/25: i need to use csv python lib and turn my csv file to an apkg file
 autodeck('AP-Calc')# query should be given with - where the spaces should be
                                                                                               

@@ -84,5 +84,7 @@ def autodeck(query):
         writer.writeheader()
         writer.writerows(csvlist)
 #11/25: i need to use csv python lib and turn my csv file to an apkg file
+#11/30 : i need to make a choose deck function to choose whatever deck I want
+        # by number on the page or the text in the deck
 autodeck('AP-Calc')# query should be given with - where the spaces should be
                                                                                               

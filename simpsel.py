@@ -29,7 +29,8 @@ def sortdecks():
     for element_text in diffdeck:
         termraw= list(re.findall(r'(\d+ terms)',element_text)) 
         starsraw= re.findall(r"(terms\n\d{1})",element_text)
-        if len(termraw) > 0:
+    
+        if len(starsraw) == 0 and len(termraw) > 0:
             termnum = termraw[0]   
             termnum = int(termnum[0:2])
             terms_per_deck.append(termnum)
@@ -48,27 +49,35 @@ def autodeck(query):
 
     driver.get(f"https://quizlet.com/search?query={query}&type=sets")
     terms_per_deck,stars_per_deck = sortdecks()
+    print(stars_per_deck)
     maxstars = max(stars_per_deck)
     index_max_stars = stars_per_deck.index(maxstars)
     #use the index of max stars to get term num
     termnum = terms_per_deck[index_max_stars]
     #find the specific deck that is to be used
-    specdeck = driver.find_element(By.XPATH,f"/html/body/div[4]/main/div/section[2]/div/div/div[2]/div[1]/div/div[{index_max_stars + 1 }]/div/div/div") 
+    specdeck = WebDriverWait(driver,1).until(
+        EC.presence_of_element_located((By.XPATH,f"/html/body/div[4]/main/div/section[2]/div/div/div[2]/div[1]/div/div[{index_max_stars}]/div/div/div")))
+    #specdeck = driver.find_element(By.XPATH,f"/html/body/div[4]/main/div/section[2]/div/div/div[2]/div[1]/div/div[{index_max_stars + 1 }]/div/div/div") 
     #multiple buttons with name preview so I had to find element within element
-    deck = specdeck.find_element(By.XPATH,f"/html/body/div[4]/main/div/section[2]/div/div/div[2]/div[1]/div/div[{index_max_stars + 1}]/div/div/div/div[2]/button/span")
+    deck = specdeck.find_element(By.XPATH,f"/html/body/div[4]/main/div/section[2]/div/div/div[2]/div[1]/div/div[{index_max_stars }]/div/div/div/div[2]/button/span")
     #find preview button
     deck.click()
     #after clicking on preview
     #making file to host cards
     cardlist =[]
-    for i in range(1,termnum+1): #this is a scroll problem
-        time.sleep(0.4) #i really need to put a webdriver wait here
-        cards = driver.find_element(By.XPATH,f"/html/body/div[4]/main/div/section[2]/div/div/div[2]/div[2]/div[1]/div/div[2]/div/div/div[3]/div[{i}]")
-        driver.execute_script("return arguments[0].scrollIntoView(true);", cards)
-        cardlist.append(cards.text)
-    #make frontandback distinctions to turn into csv file
+    try:
+        for i in range(1,termnum+1): #this is a scroll problem
+            time.sleep(0.04)
+            cards = driver.find_element(By.XPATH,f"/html/body/div[4]/main/div/section[2]/div/div/div[2]/div[2]/div[1]/div/div[2]/div/div/div[3]/div[{i}]")
+            driver.execute_script("return arguments[0].scrollIntoView(true);", cards)
+            cardlist.append(cards.text)
+    except:
+        pass
+        #make frontandback distinctions to turn into csv file
     csvlist = []
+    print(cardlist)
     for card in cardlist:
+        print(card)
         spliter = card.index("\n")
         frontback = {"front":0,"back":0}
         frontback["front"] = card[0:spliter]
@@ -83,6 +92,7 @@ def autodeck(query):
         writer = csv.DictWriter(csvfile,fieldnames = fields)
         writer.writeheader()
         writer.writerows(csvlist)
+    #there is a \n in the cardlist for both decks 1 and 2 yet i the index function fails for deck 1 , why is that
     #make a expection for value error  and make it so that webdriver waits are used  
 #11/25: i need to use csv python lib and turn my csv file to an apkg file
 #11/30 : i need to make a choose deck function to choose whatever deck I want

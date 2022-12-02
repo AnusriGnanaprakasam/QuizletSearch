@@ -53,9 +53,9 @@ def autodeck(query):
     #use the index of max stars to get term num
     termnum = terms_per_deck[index_max_stars]
     #find the specific deck that is to be used
-    specdeck = driver.find_element(By.XPATH,f"/html/body/div[4]/main/div/section[2]/div/div/div[2]/div[1]/div/div[{index_max_stars }]/div/div/div") 
+    specdeck = driver.find_element(By.XPATH,f"/html/body/div[4]/main/div/section[2]/div/div/div[2]/div[1]/div/div[{index_max_stars + 1 }]/div/div/div") 
     #multiple buttons with name preview so I had to find element within element
-    deck = specdeck.find_element(By.XPATH,f"/html/body/div[4]/main/div/section[2]/div/div/div[2]/div[1]/div/div[{index_max_stars}]/div/div/div/div[2]/button/span")
+    deck = specdeck.find_element(By.XPATH,f"/html/body/div[4]/main/div/section[2]/div/div/div[2]/div[1]/div/div[{index_max_stars + 1}]/div/div/div/div[2]/button/span")
     #find preview button
     deck.click()
     #after clicking on preview
@@ -83,6 +83,7 @@ def autodeck(query):
         writer = csv.DictWriter(csvfile,fieldnames = fields)
         writer.writeheader()
         writer.writerows(csvlist)
-#11/25: i need to use csv python lib and turn my csv file to an apkg file
+    #make a expection for value error  and make it so that webdriver waits are used  
 autodeck('AP-Calc')# query should be given with - where the spaces should be
+
                                                                                               

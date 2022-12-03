@@ -1,11 +1,8 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.actions.wheel_input import ScrollOrigin
-from selenium.webdriver import ActionChains
 import csv
 import re
 import time
@@ -44,40 +41,28 @@ def sortdecks():
             terms_per_deck.append(termnum)
     return terms_per_deck,stars_per_deck
 
-def autodeck(query):
-    '''chooses the best deck for a topic based on number of stars'''
-
-    driver.get(f"https://quizlet.com/search?query={query}&type=sets")
-    terms_per_deck,stars_per_deck = sortdecks()
-    print(stars_per_deck)
-    maxstars = max(stars_per_deck)
-    index_max_stars = stars_per_deck.index(maxstars)
-    #use the index of max stars to get term num
-    termnum = terms_per_deck[index_max_stars]
-    #find the specific deck that is to be used
+def find_deck(decklen,decknum):
     specdeck = WebDriverWait(driver,1).until(
-        EC.presence_of_element_located((By.XPATH,f"/html/body/div[4]/main/div/section[2]/div/div/div[2]/div[1]/div/div[{index_max_stars}]/div/div/div")))
+        EC.presence_of_element_located((By.XPATH,f"/html/body/div[4]/main/div/section[2]/div/div/div[2]/div[1]/div/div[{decknum+ 1}]/div/div/div")))
     #specdeck = driver.find_element(By.XPATH,f"/html/body/div[4]/main/div/section[2]/div/div/div[2]/div[1]/div/div[{index_max_stars + 1 }]/div/div/div") 
     #multiple buttons with name preview so I had to find element within element
-    deck = specdeck.find_element(By.XPATH,f"/html/body/div[4]/main/div/section[2]/div/div/div[2]/div[1]/div/div[{index_max_stars }]/div/div/div/div[2]/button/span")
+    deck = specdeck.find_element(By.XPATH,f"/html/body/div[4]/main/div/section[2]/div/div/div[2]/div[1]/div/div[{decknum+ 1 }]/div/div/div/div[2]/button/span")
     #find preview button
     deck.click()
     #after clicking on preview
     #making file to host cards
     cardlist =[]
-    try:
-        for i in range(1,termnum+1): #this is a scroll problem
-            time.sleep(0.04)
-            cards = driver.find_element(By.XPATH,f"/html/body/div[4]/main/div/section[2]/div/div/div[2]/div[2]/div[1]/div/div[2]/div/div/div[3]/div[{i}]")
-            driver.execute_script("return arguments[0].scrollIntoView(true);", cards)
-            cardlist.append(cards.text)
-    except:
-        pass
-        #make frontandback distinctions to turn into csv file
+    for i in range(1,decklen+1): #this is a scroll problem
+        time.sleep(0.5)
+        cards = driver.find_element(By.XPATH,f"/html/body/div[4]/main/div/section[2]/div/div/div[2]/div[2]/div[1]/div/div[2]/div/div/div[3]/div[{i}]")
+        driver.execute_script("return arguments[0].scrollIntoView(true);", cards)
+        cardlist.append(cards.text)
+
+    return cardlist
+
+def makecsv(cardlist):
     csvlist = []
-    print(cardlist)
     for card in cardlist:
-        print(card)
         spliter = card.index("\n")
         frontback = {"front":0,"back":0}
         frontback["front"] = card[0:spliter]
@@ -88,15 +73,30 @@ def autodeck(query):
     fields = ["front","back"]
     
     with open("yourdeck.csv",'w') as csvfile:
-
         writer = csv.DictWriter(csvfile,fieldnames = fields)
         writer.writeheader()
         writer.writerows(csvlist)
-    #there is a \n in the cardlist for both decks 1 and 2 yet i the index function fails for deck 1 , why is that
-    #make a expection for value error  and make it so that webdriver waits are used  
-#11/25: i need to use csv python lib and turn my csv file to an apkg file
-#11/30 : i need to make a choose deck function to choose whatever deck I want
-        # by number on the page or the text in the deck
-autodeck('AP-Calc')# query should be given with - where the spaces should be
 
+def autodeck(query):
+    '''chooses the best deck for a topic based on number of stars'''
+
+    driver.get(f"https://quizlet.com/search?query={query}&type=sets")
+    terms_per_deck,stars_per_deck = sortdecks()
+    maxstars = max(stars_per_deck)
+    #termnum is equal to the first index with 0 stars in somecases
+    index_max_stars = stars_per_deck.index(maxstars)
+    #use the index of max stars to get term num
+    termnum = terms_per_deck[index_max_stars]
+    #find the specific deck that is to be used
+    cardlist = find_deck(termnum,index_max_stars)
+    makecsv(cardlist)
+
+
+def choosedeck(query,termnum,decknum):
+    driver.get(f"https://quizlet.com/search?query={query}&type=sets")
+    cardlist = find_deck(termnum,decknum - 1)
+    makecsv(cardlist)
+
+autodeck('AP-Bio')# query should be given with - where the spaces should be
+choosedeck("ap-us-history-unit-4",60,1)
                                                                                               

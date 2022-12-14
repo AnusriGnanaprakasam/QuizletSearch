@@ -1,6 +1,18 @@
-
 import customtkinter
-
+from quizletsearch import simpsel 
+#google sign in pop up gets in the way(locate and click on the element)
+#closing pop up makes it work 
+''' raise exception_class(message, screen, stacktrace)
+selenium.common.exceptions.ElementClickInterceptedExceptio
+n: Message: Element <span> is not clickable at point (540,
+273) because another element <iframe src="https://accounts
+.google.com/gsi/iframe/select?client_id=520305074949.apps.
+googleusercontent.com&auto_select=true&ux_mode=popup&ui_mo
+de=card&as=pg%2BBDStgEqqR4w1NXRaj9g&is_itp=true&channel_id
+=d1e766d518ea29152e85e5bc4997bce91b588149b3461e79aa7f17d8c
+4e50d78&origin=https%3A%2F%2Fquizlet.com"> obscures it
+Stacktrace:
+'''
 class App(customtkinter.CTk):
 
     customtkinter.set_appearance_mode("dark")
@@ -14,8 +26,9 @@ class App(customtkinter.CTk):
         self.button.pack(padx=20, pady=200)
 
     def button_callback(self):
-        dialog = customtkinter.CTkInputDialog(text="type subject to be searched for with \"-\" substituted for spaces",title="Quizlet Search")
-        print(dialog)
+        dialog = customtkinter.CTkInputDialog(text="Type subject to be searched for. Use dashes: \"-\" substituted for spaces",title="Quizlet Search")
+        #simpsel.autodeck(dialog.get_input()) 
+        simpsel.autodeck(dialog.get_input())
 
 
 if __name__ == "__main__":
@@ -30,40 +43,4 @@ if __name__ == "__main__":
 
 
 
-
-
-# needed to install tk package to actually run it
-'''customtkinter.set_appearance_mode("dark")
-customtkinter.set_default_color_theme("dark-blue")
-
-root = customtkinter.CTk()
-root.geometry("500x350")
-
-def login():
-    print("t")
-
-frame = customtkinter.CTkFrame(master=root)
-frame.pack(pady=20,padx=60,fill="both",expand=True)
-
-label = customtkinter.CTkLabel(master=frame, text="Login",font=("Roboto",24))
-label.pack(pady=12,padx=10)
-
-entry1 = customtkinter.CTkEntry(master=frame, placeholder_text="Username")
-entry1.pack(pady=12,padx=10)
-
-
-entry2 = customtkinter.CTkEntry(master=frame, placeholder_text="Username")
-entry2.pack(pady=12,padx=10)
-
-button = customtkinter.CTkButton(master=frame, text="login",command=login)
-button.pack(pady=12,padx=10)
-
-checkbox = customtkinter.CTkCheckBox(master=frame, text = "REmember meee")
-checkbox.pack(pady=12,padx=10)
-
-
-root.mainloop()
-
-
-'''
 

@@ -1,15 +1,17 @@
 from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+import os
 import csv
 import re
 import time
 
+from webdriver_manager.chrome import ChromeDriverManager
+
 #open firefox browser
-service = Service(r"/home/nunu/Tools/geckodriver" )
-driver = webdriver.Firefox(service=service)
+ #use webdriver manager
+driver = webdriver.Chrome(ChromeDriverManager().install())
 
 def sortdecks():
     '''sorts deck based on number of terms and stars. Stores indexes of cards where term or star num = n'''
@@ -71,8 +73,8 @@ def makecsv(cardlist):
     print(csvlist)
 
     fields = ["front","back"]
-    
-    with open("yourdeck.csv",'w') as csvfile:
+    os.mkdir("C:\yourdeck")
+    with open("C:\yourdeck\yourdeck.csv",'w') as csvfile: #change name yourdeck.csv to the input name
         writer = csv.DictWriter(csvfile,fieldnames = fields)
         writer.writeheader()
         writer.writerows(csvlist)
@@ -97,6 +99,5 @@ def choosedeck(query,termnum,decknum):
     cardlist = find_deck(termnum,decknum - 1)
     makecsv(cardlist)
 
-autodeck('AP-Bio')# query should be given with - where the spaces should be
-choosedeck("ap-us-history-unit-4",60,1)
+
                                                                                               

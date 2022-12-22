@@ -4,13 +4,18 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver.chrome.options import Options
+# i want to try chrome with the headless option so that no window opens
 import os
 import csv
 import re
 import time
 
+chrome_options = Options()
+chrome_options.add_argument('headless')
+driver = webdriver.Chrome(options=chrome_options)
 
-driver = webdriver.Chrome(ChromeDriverManager().install())
+#driver = webdriver.Chrome(ChromeDriverManager().install())
 
 def printdecks():
     setview = driver.find_element(By.CLASS_NAME, value="SetsView-resultList")
@@ -44,10 +49,9 @@ def sortdecks():
             terms_per_deck.append(termnum)
     return terms_per_deck,stars_per_deck
 
-def find_deck(decknum,decklen=100000): #there must be an argument mismatch lol cause i changed the argument order for decknum and decklen
+def find_deck(decknum,decklen=100000):
     specdeck = WebDriverWait(driver,10).until(
         EC.presence_of_element_located((By.XPATH,f"/html/body/div[4]/main/div/section[2]/div/div/div[2]/div[1]/div/div[{decknum+ 1}]/div/div/div")))
-    #specdeck = driver.find_element(By.XPATH,f"/html/body/div[4]/main/div/section[2]/div/div/div[2]/div[1]/div/div[{decknum + 1 }]/div/div/div")
     #multiple buttons with name preview so I had to find element within element
     deck = specdeck.find_element(By.XPATH,f"/html/body/div[4]/main/div/section[2]/div/div/div[2]/div[1]/div/div[{decknum+ 1 }]/div/div/div/div[2]/button/span")
     #find preview button
@@ -110,6 +114,7 @@ def autodeck(query):
 
 
 def choosedeck(query,authorname):
+    '''chooses a deck using the name of the deck and the author's name'''
     driver.get(f"https://quizlet.com/search?query={query} {authorname}&type=sets")
     cardlist = find_deck(0)
     makecsv(cardlist)

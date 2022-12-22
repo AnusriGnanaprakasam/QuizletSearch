@@ -72,21 +72,24 @@ def find_deck(decknum,decklen=100000): #there must be an argument mismatch lol c
 
 def makecsv(cardlist):
     csvlist = []
+    try:
+        cardlist.remove('')
+    except ValueError:
+        pass
     for card in cardlist:
+        print(card)
         spliter = card.index("\n")
-        frontback = {"front":0,"back":0}
-        frontback["front"] = card[0:spliter]
-        frontback["back"] = card[spliter+1:]
-        csvlist.append(frontback) 
+        frontback = {"front": card[0:spliter], "back": card[spliter + 1:]}
+        csvlist.append(frontback)
     print(csvlist)
 
     fields = ["front","back"]
     try:
-        os.chdir("C:\yourdeck")
+        os.chdir("C:\yourdecks")
     except FileNotFoundError:
-        os.mkdir("C:\yourdeck")
+        os.mkdir("C:\yourdecks")
 
-    with open("C:\yourdeck\yourdeck.csv",'w') as csvfile: #change name yourdeck.csv to the input name
+    with open("C:\yourdecks\yourdeck.csv",'w') as csvfile: #change name yourdeck.csv to the input name
         writer = csv.DictWriter(csvfile,fieldnames = fields)
         writer.writeheader()
         writer.writerows(csvlist)

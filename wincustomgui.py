@@ -20,7 +20,7 @@ class App(customtkinter.CTk):
         query = dialog.get_input()
         if ',' in query:
             query, authorname = query.split(",")
-            winsimpsel.choosedeck(query, authorname) # why am i getting an error when making a csv file for this function????
+            winsimpsel.choosedeck(query, authorname)
         else:
             winsimpsel.autodeck(query)
 

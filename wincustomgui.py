@@ -1,36 +1,30 @@
 import customtkinter
-from winquizletsearch import wimsimpsel
-
+from winquizletsearch import winsimpsel
 
 
 class App(customtkinter.CTk):
-
     customtkinter.set_appearance_mode("dark")
 
     def __init__(self):
         super().__init__()
 
         self.title("Quizlet to Anki")
-        self.minsize(410,300)
-        self.button = customtkinter.CTkButton(master=self,text = "To Search", command=self.button_callback)
+        self.minsize(410, 300)
+        self.button = customtkinter.CTkButton(master=self, text="To Search", command=self.button_callback)
         self.button.pack(padx=20, pady=200)
 
     def button_callback(self):
-        dialog = customtkinter.CTkInputDialog(text="Type subject to be searched for. Use dashes: \"-\" substituted for spaces",title="Quizlet Search")
-        #simpsel.autodeck(dialog.get_input()) 
-        simpsel.autodeck(dialog.get_input())
+        dialog_text = """Type subject to be searched for. Use dashes: \"-\" substituted for spaces.\n If you want to choose a specific deck, type the name of that deck
+        (with dashes still replacing spaces) and use a comma to separate the author from the name. If you cannot find your deck, try to reduce the search down to important words. """
+        dialog = customtkinter.CTkInputDialog(text=dialog_text, title="Quizlet Search")
+        query = dialog.get_input()
+        if ',' in query:
+            query, authorname = query.split(",")
+            winsimpsel.choosedeck(query, authorname) # why am i getting an error when making a csv file for this function????
+        else:
+            winsimpsel.autodeck(query)
 
 
 if __name__ == "__main__":
     app = App()
     app.mainloop()
-
-
-
-
-
-
-
-
-
-

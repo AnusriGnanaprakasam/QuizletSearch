@@ -2,30 +2,31 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.common.exceptions import NoSuchElementException
 import os
 import csv
 import re
 import time
 
-from webdriver_manager.chrome import ChromeDriverManager
 
-#open firefox browser
- #use webdriver manager
 driver = webdriver.Chrome(ChromeDriverManager().install())
 
-def sortdecks():
-    '''sorts deck based on number of terms and stars. Stores indexes of cards where term or star num = n'''
-    setview = driver.find_element(By.CLASS_NAME,value="SetsView-resultList") 
-    Decks = setview.find_elements(By.CLASS_NAME,value="SearchResultsPage-result")
-    #Decks are on the left. There are multiple that many people make on one topic
+def printdecks():
+    setview = driver.find_element(By.CLASS_NAME, value="SetsView-resultList")
+    Decks = setview.find_elements(By.CLASS_NAME, value="SearchResultsPage-result")
+    # Decks are on the left. There are multiple that many people make on one topic
     diffdeck = []
     for deck in range(len(Decks)):
         diffdeck.append(Decks[deck].text)
+    return diffdeck
 
+def sortdecks():
+    '''sorts deck based on number of terms and stars. Stores indexes of cards where term or star num = n'''
     terms_per_deck = [] 
     stars_per_deck = []
-    #filter by num of terms and see if there are stars:
-    for element_text in diffdeck:
+    #filter by num of terms and see if there are stars
+    for element_text in printdecks():
         termraw= list(re.findall(r'(\d+ terms)',element_text)) 
         starsraw= re.findall(r"(terms\n\d{1})",element_text)
     
@@ -43,10 +44,10 @@ def sortdecks():
             terms_per_deck.append(termnum)
     return terms_per_deck,stars_per_deck
 
-def find_deck(decklen,decknum):
-    specdeck = WebDriverWait(driver,1).until(
+def find_deck(decknum,decklen=100000): #there must be an argument mismatch lol cause i changed the argument order for decknum and decklen
+    specdeck = WebDriverWait(driver,10).until(
         EC.presence_of_element_located((By.XPATH,f"/html/body/div[4]/main/div/section[2]/div/div/div[2]/div[1]/div/div[{decknum+ 1}]/div/div/div")))
-    #specdeck = driver.find_element(By.XPATH,f"/html/body/div[4]/main/div/section[2]/div/div/div[2]/div[1]/div/div[{index_max_stars + 1 }]/div/div/div") 
+    #specdeck = driver.find_element(By.XPATH,f"/html/body/div[4]/main/div/section[2]/div/div/div[2]/div[1]/div/div[{decknum + 1 }]/div/div/div")
     #multiple buttons with name preview so I had to find element within element
     deck = specdeck.find_element(By.XPATH,f"/html/body/div[4]/main/div/section[2]/div/div/div[2]/div[1]/div/div[{decknum+ 1 }]/div/div/div/div[2]/button/span")
     #find preview button
@@ -54,13 +55,20 @@ def find_deck(decklen,decknum):
     #after clicking on preview
     #making file to host cards
     cardlist =[]
-    for i in range(1,decklen+1): #this is a scroll problem
-        time.sleep(0.5)
-        cards = driver.find_element(By.XPATH,f"/html/body/div[4]/main/div/section[2]/div/div/div[2]/div[2]/div[1]/div/div[2]/div/div/div[3]/div[{i}]")
-        driver.execute_script("return arguments[0].scrollIntoView(true);", cards)
-        cardlist.append(cards.text)
 
-    return cardlist
+#selenium.common.exceptions.NoSuchElementException
+    try:
+        for i in range(1,decklen+1):
+            time.sleep(0.5)
+            cards = driver.find_element(By.XPATH,f"/html/body/div[4]/main/div/section[2]/div/div/div[2]/div[2]/div[1]/div/div[2]/div/div/div[3]/div[{i}]")
+            driver.execute_script("return arguments[0].scrollIntoView(true);", cards)
+            cardlist.append(cards.text)
+
+        return cardlist
+
+    except NoSuchElementException:
+        print(":))")
+        return cardlist
 
 def makecsv(cardlist):
     csvlist = []
@@ -73,7 +81,11 @@ def makecsv(cardlist):
     print(csvlist)
 
     fields = ["front","back"]
-    os.mkdir("C:\yourdeck")
+    try:
+        os.chdir("C:\yourdeck")
+    except FileNotFoundError:
+        os.mkdir("C:\yourdeck")
+
     with open("C:\yourdeck\yourdeck.csv",'w') as csvfile: #change name yourdeck.csv to the input name
         writer = csv.DictWriter(csvfile,fieldnames = fields)
         writer.writeheader()
@@ -90,14 +102,13 @@ def autodeck(query):
     #use the index of max stars to get term num
     termnum = terms_per_deck[index_max_stars]
     #find the specific deck that is to be used
-    cardlist = find_deck(termnum,index_max_stars)
+    cardlist = find_deck(index_max_stars,termnum)
     makecsv(cardlist)
 
 
-def choosedeck(query,termnum,decknum):
-    driver.get(f"https://quizlet.com/search?query={query}&type=sets")
-    cardlist = find_deck(termnum,decknum - 1)
+def choosedeck(query,authorname):
+    driver.get(f"https://quizlet.com/search?query={query} {authorname}&type=sets")
+    cardlist = find_deck(0)
     makecsv(cardlist)
 
 
-                                                                                              

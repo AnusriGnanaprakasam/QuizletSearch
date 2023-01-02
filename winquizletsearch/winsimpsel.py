@@ -11,11 +11,13 @@ import csv
 import re
 import time
 
-chrome_options = Options()
-chrome_options.add_argument('headless')
-driver = webdriver.Chrome(options=chrome_options)
+options = Options()
+options.headless = True
+driver = webdriver.Chrome(options=options)
+driver.set_window_size(1050,708)
+driver = webdriver.Chrome(ChromeDriverManager().install())
+print(driver.get_window_size())
 
-#driver = webdriver.Chrome(ChromeDriverManager().install())
 
 def printdecks():
     setview = driver.find_element(By.CLASS_NAME, value="SetsView-resultList")

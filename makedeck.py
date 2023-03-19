@@ -1,10 +1,11 @@
 import re
+import time
 from playwright.sync_api import  sync_playwright
 
 def rate_decks(splitdecks):
     '''Return specific deck number and the start,end indexs within the string'''
-    teachdeck = []
-    stardeck = []
+    teachdeck = [] #contains the indexes of values in splitdecks that contain "teacher"
+    stardeck = []#contains the indexes of values in splitdecks that contain stars
     for dindex, deck in enumerate(splitdecks):
         terms_decimal_match = re.search(r"terms\d.\d", deck)
         terms_match = re.search(r"terms\d", deck)
@@ -12,36 +13,32 @@ def rate_decks(splitdecks):
         if "Images" in deck:
             continue
                 
-        if "Teacher" in deck:
+        elif "Teacher" in deck:
             teachdeck.append(dindex)
-            continue
 
-        if terms_decimal_match:
+        elif terms_decimal_match:
             print(deck)
             num = deck[terms_decimal_match.start()+5:terms_decimal_match.end()]
             print(num)
             stardeck.append((dindex,num))
-            continue
 
-        if terms_match:
+        elif terms_match:
             print(deck)
             num = deck[terms_match.start()+5]
             print(num)
             stardeck.append((dindex,num))
-#nothings wrong it's just that eerything is teach or images
-    print(stardeck,"check")
-    findmax = [ float(starnum[1]) for starnum in stardeck]
-    max_value = max(findmax)
-    print(max_value,"m")
-    for dtuple in stardeck:
-        if float(dtuple[1]) == max_value:
-            the_deck = splitdecks[dtuple[0]]
-            print(the_deck,"iii")
-    return stardeck,teachdeck 
+
+    if len(teachdeck) != 0:
+        print(splitdecks[teachdeck[0]])
+        return splitdecks[teachdeck[0]]
+    if len(teachdeck) == 0:
+        findmax = [ float(starnum[1]) for starnum in stardeck]
+        max_value = max(findmax)
+        for dtuple in stardeck:
+            if float(dtuple[1]) == max_value:
+                return splitdecks[dtuple[0]]
     
-def click_scrap(wanted_deck):
-    pass
-    
+     
 def open_quizlet_in_browser(playwright, query, authorname):
 
     chromium = playwright.chromium
@@ -49,15 +46,29 @@ def open_quizlet_in_browser(playwright, query, authorname):
     page = browser.new_page()
     page.goto(f"https://quizlet.com/search?query={query}+{authorname}&type=sets")
     alldecks = page.locator("div.SetsView-resultList")
+    #^-- assumes that search is successful
     decks =   alldecks.text_content()
     splitdecks = re.split("Preview",decks)
-    stardeck,teachdeck = rate_decks(splitdecks)
-    if len(teachdeck) != 0:
-        wanted_deck = splitdecks[teachdeck[0]]
-    if len(stardeck) != 0:
-        pass
-        #wanted_deck = splitdecks[stardeck[]]
+    if authorname == "":
+        wanted_deck = rate_decks(splitdecks)
+    else:
+        wanted_deck = splitdecks[0]
+    csv_deck = alldecks.get_by_text(wanted_deck)
+    preview = csv_deck.get_by_role("button",name="Preview")
+    preview.click()
+    study = page.get_by_role("button",name="Study")
+    study.click() 
+    card_number = page.get_by_test_id("progress-header")
+    print(card_number)
+    #if the number of cards is greater than 9, then the first 8 are only shown
+    #if the number is less than 9 or equal to 9, everything but the last card is shown
+    #https://quizlet.com/432773133/ap-gov-unit-2-flash-cards/ all you need is the number and name of deck + flash-cards
+    new_page = browser.new_page()
+    new_page.goto("https://www.guerrillamail.com/inbox")
+    signup = page.get_by_role("button",name="Sign up")
+    signup.click()
 
+    time.sleep(35)
     browser.close()
 
 def main(query, authorname=''):
@@ -65,4 +76,4 @@ def main(query, authorname=''):
         open_quizlet_in_browser(playwright, query, authorname)
 
 
-main('ap-gov')
+main('lol')

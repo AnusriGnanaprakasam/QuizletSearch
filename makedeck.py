@@ -38,14 +38,12 @@ def rate_decks(splitdecks):
             if float(dtuple[1]) == max_value:
                 return splitdecks[dtuple[0]]
     
-     
-def open_quizlet_in_browser(playwright, query, authorname):
 
-    chromium = playwright.chromium
-    browser = chromium.launch(headless=False)
-    page = browser.new_page()
-    page.goto(f"https://quizlet.com/search?query={query}+{authorname}&type=sets")
-    alldecks = page.locator("div.SetsView-resultList")
+def search_decks(browser,authorname,query):
+
+    quizlet_search = browser.new_page()
+    quizlet_search.goto(f"https://quizlet.com/search?query={query}+{authorname}&type=sets")
+    alldecks = quizlet_search.locator("div.SetsView-resultList")
     #^-- assumes that search is successful
     decks =   alldecks.text_content()
     splitdecks = re.split("Preview",decks)
@@ -56,24 +54,40 @@ def open_quizlet_in_browser(playwright, query, authorname):
     csv_deck = alldecks.get_by_text(wanted_deck)
     preview = csv_deck.get_by_role("button",name="Preview")
     preview.click()
-    study = page.get_by_role("button",name="Study")
+    study = quizlet_search.get_by_role("button",name="Study")
     study.click() 
-    card_number = page.get_by_test_id("progress-header")
-    print(card_number)
+
+def create_email_quizlet_login(browser):
+
+    guerilla_mail = browser.new_page()
+    guerilla_mail.goto("https://www.guerrillamail.com/inbox")
+    name = guerilla_mail.get_by_title("Click to Edit")
+    name = name.text_content()
+    email = name+"@sharklasers.com"
+    print(email)
     #if the number of cards is greater than 9, then the first 8 are only shown
     #if the number is less than 9 or equal to 9, everything but the last card is shown
-    #https://quizlet.com/432773133/ap-gov-unit-2-flash-cards/ all you need is the number and name of deck + flash-cards
-    new_page = browser.new_page()
-    new_page.goto("https://www.guerrillamail.com/inbox")
-    signup = page.get_by_role("button",name="Sign up")
+    quizlet_login = browser.new_page()
+    quizlet_login.goto("https://quizlet.com/")
+    signup = quizlet_login.get_by_role("button",name="Sign up", exact= True)
     signup.click()
+    quizlet_login.get_by_role("combobox", name="birth_month").select_option("May")
+    quizlet_login.get_by_role("combobox", name="birth_day").select_option("15")
+    quizlet_login.get_by_role("combobox", name="birth_year").select_option("2002")
+    quizlet_login.get_by_placeholder("user@quizlet.com").click()
+    quizlet_login.get_by_placeholder("user@quizlet.com").fill(email)
+    quizlet_login.get_by_placeholder("●●●●●●●●").click()
+    quizlet_login.get_by_placeholder("●●●●●●●●").fill("ul**%$^%%^JAFDh")
+    quizlet_login.get_by_role("button",name="Sign up").click()
 
-    time.sleep(35)
-    browser.close()
+    #https://quizlet.com/432773133/ap-gov-unit-2-flash-cards/ all you need is the number and name of deck + flash-cards
 
 def main(query, authorname=''):
     with sync_playwright() as playwright:
-        open_quizlet_in_browser(playwright, query, authorname)
+        chromium = playwright.chromium
+        browser = chromium.launch(headless=False)
+        create_email_quizlet_login(browser)
+        search_decks(browser,authorname,query)
+        browser.close()
 
-
-main('lol')
+main('ap-gov')

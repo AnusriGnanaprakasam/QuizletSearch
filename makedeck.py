@@ -1,6 +1,7 @@
 import re
 import time
 import os
+import csv
 from playwright.sync_api import  sync_playwright, TimeoutError
 
 def rate_decks(splitdecks):
@@ -61,6 +62,18 @@ def login(email,password,quizlet_login):
     quizlet_login.get_by_placeholder("Type your password").fill(password)
     quizlet_login.get_by_test_id("login-form").get_by_role("button",name="Log in").click()
 
+def make_csv(front,back,query):
+    flashcard = []
+    fields = ["front","back"]
+    for i in range(len(front)):
+        flashcard.append({"front":front[i],"back":back[i]})
+    with open(f'{query}.csv', mode='w', newline='') as file:
+        writer = csv.DictWriter(file,fieldnames = fields)
+        writer.writeheader()
+        writer.writerows(flashcard) 
+    return 0
+
+
 def search_decks(email,password,browser,query):
     quizlet_search = browser.new_page()
     login(email,password,quizlet_search)
@@ -69,14 +82,11 @@ def search_decks(email,password,browser,query):
     searchbar.fill(query)
     quizlet_search.keyboard.press("Enter")
     quizlet_search.get_by_role("tab",name="Study sets").click()
-    #alldecks = quizlet_search.locator("div.SetsView-resultList")
     alldecks = []
     for i in range(8):
         card = quizlet_search.get_by_test_id("SetsView-resultItem").nth(i)
         alldecks.append(card.text_content())
     #^-- assumes that search is successful
-    #decks =   alldecks.text_content()
-    #splitdecks = re.split("Preview",decks)
     print(alldecks)
     wanted_deck = rate_decks(alldecks)
     print(wanted_deck)
@@ -88,20 +98,16 @@ def search_decks(email,password,browser,query):
     card_number = quizlet_search.get_by_test_id("progress-header").first
     number = card_number.text_content()
     number = number[-3:]
-    front = []
-    back = []
+    print(number,"number of terms")
+    frontlist = []
+    backlist= []
     for i in range(int(number)):
-        #quizlet_search = quizlet_search.locator("div.SetPageTerms-term").nth(i)
         front = quizlet_search.locator("a.SetPageTerm-wordText").nth(i)
-        print(front.text_content())
+        frontlist.append(front.text_content())
         back = quizlet_search.locator("a.SetPageTerm-definitionText").nth(i)
-        print(back.text_content())
-        #under = quizlet_search.locator("div.SetPageTermChunk SetPageTermChunk--notStudied")
-        #print(under.text_content())
-        
+        backlist.append(back.text_content())
+    return frontlist,backlist
 
-    #if the number of cards is greater than 9, then the first 8 are only shown
-    #if the number is less than 9 or equal to 9, everything but the last card is shown
 def main(query):
     with sync_playwright() as playwright:
         chromium = playwright.chromium
@@ -111,10 +117,10 @@ def main(query):
             email = email_file.read()
             print(email)
         with open("accountfile.txt",'r+') as made:
-            print(type(made.read()))
             made.seek(0)
             if int(made.read()) == 1:
-                search_decks(email,password,browser,query)
+                front,back = search_decks(email,password,browser,query)
+                make_csv(front,back,query)
             else:
                 sign_up(email,password,browser)
                 made.write("1")
